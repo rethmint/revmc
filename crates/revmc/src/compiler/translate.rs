@@ -4,11 +4,11 @@ use super::default_attrs;
 use crate::{
     Backend, Builder, Bytecode, EvmContext, Inst, InstData, InstFlags, IntCC, Result, I256_MIN,
 };
-use revm_interpreter::{
+use revm::interpreter::{
     opcode as op, Contract, FunctionReturnFrame, FunctionStack, InstructionResult,
     OPCODE_INFO_JUMPTABLE,
 };
-use revm_primitives::{BlockEnv, CfgEnv, Env, Eof, SpecId, TxEnv, U256};
+use revm::primitives::{BlockEnv, CfgEnv, Env, Eof, SpecId, TxEnv, U256};
 use revmc_backend::{
     eyre::ensure, Attribute, BackendTypes, FunctionAttributeLocation, Pointer, TypeMethods,
 };
@@ -483,7 +483,7 @@ impl<'a, B: Backend> FunctionCx<'a, B> {
         self.bcx.switch_to_block(entry_block);
 
         let is_eof = self.bytecode.is_eof();
-        let is_eof_enabled = self.bytecode.spec_id.is_enabled_in(SpecId::PRAGUE_EOF);
+        let is_eof_enabled = self.bytecode.spec_id.is_enabled_in(SpecId::OSAKA);
         if is_eof {
             ensure!(is_eof_enabled, "EOF bytecode in non-EOF spec");
         }
@@ -2287,7 +2287,7 @@ mod pf {
         data: AtomicPtr<()>,
         vtable: &'static Vtable,
     }
-    const _: [(); mem::size_of::<revm_primitives::Bytes>()] = [(); mem::size_of::<Bytes>()];
+    const _: [(); mem::size_of::<revm::primitives::Bytes>()] = [(); mem::size_of::<Bytes>()];
     struct Vtable {
         /// fn(data, ptr, len)
         clone: unsafe fn(&AtomicPtr<()>, *const u8, usize) -> Bytes,
@@ -2314,7 +2314,7 @@ mod pf {
         /// Refunded gas. This is used only at the end of execution.
         refunded: i64,
     }
-    const _: [(); mem::size_of::<revm_interpreter::Gas>()] = [(); mem::size_of::<Gas>()];
+    const _: [(); mem::size_of::<revm::interpreter::Gas>()] = [(); mem::size_of::<Gas>()];
 
     #[allow(unexpected_cfgs)]
     pub(super) struct SharedMemory {
@@ -2324,12 +2324,12 @@ mod pf {
         #[cfg(feature = "memory_limit")]
         memory_limit: u64,
     }
-    const _: [(); mem::size_of::<revm_interpreter::SharedMemory>()] =
+    const _: [(); mem::size_of::<revm::interpreter::SharedMemory>()] =
         [(); mem::size_of::<SharedMemory>()];
 
     #[test]
     fn shared_memory_layout() {
-        let mem = revm_interpreter::SharedMemory::default();
+        let mem = revm::interpreter::SharedMemory::default();
         let mem_ptr = &mem as *const _ as *const u8;
         unsafe {
             assert_eq!(

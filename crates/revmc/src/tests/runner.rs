@@ -1,7 +1,7 @@
 use super::*;
 use interpreter::{AccountLoad, Eip7702CodeLoad, SStoreResult, StateLoad};
-use revm_interpreter::{opcode as op, Contract, DummyHost, Host, SelfDestructResult};
-use revm_primitives::{
+use revm::interpreter::{opcode as op, Contract, DummyHost, Host, SelfDestructResult};
+use revm::primitives::{
     spec_to_generic, BlobExcessGasAndPrice, BlockEnv, CfgEnv, Env, HashMap, TxEnv, EOF_MAGIC_BYTES,
 };
 use similar_asserts::assert_eq;
@@ -27,16 +27,16 @@ impl<'a> arbitrary::Arbitrary<'a> for TestCase<'a> {
     fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
         let is_eof_enabled = u.arbitrary::<bool>()?;
         let spec_id_range = if is_eof_enabled {
-            SpecId::PRAGUE_EOF as u8..=SpecId::PRAGUE_EOF as u8
+            SpecId::OSAKA as u8..=SpecId::OSAKA as u8
         } else {
-            0..=(SpecId::PRAGUE_EOF as u8 - 1)
+            0..=(SpecId::OSAKA as u8 - 1)
         };
         let spec_id = SpecId::try_from_u8(u.int_in_range(spec_id_range)?).unwrap_or(DEF_SPEC);
 
         let mut bytecode: &'a [u8] = u.arbitrary()?;
         if is_eof_enabled && !bytecode.starts_with(&EOF_MAGIC_BYTES) && u.arbitrary()? {
             let code = eof_sections_unchecked(&[bytecode]);
-            if revm_interpreter::analysis::validate_eof(&code).is_ok() {
+            if revm::interpreter::analysis::validate_eof(&code).is_ok() {
                 static mut STORAGE: Bytes = Bytes::new();
                 unsafe {
                     STORAGE = code.raw;
@@ -321,7 +321,7 @@ pub fn with_evm_context<F: FnOnce(&mut EvmContext<'_>, &mut EvmStack, &mut usize
 ) -> R {
     let contract = Contract {
         input: Bytes::from_static(DEF_CD),
-        bytecode: revm_interpreter::analysis::to_analysed(revm_primitives::Bytecode::new_raw(
+        bytecode: revm::interpreter::analysis::to_analysed(revm::primitives::Bytecode::new_raw(
             Bytes::copy_from_slice(bytecode),
         )),
         hash: None,
@@ -331,7 +331,7 @@ pub fn with_evm_context<F: FnOnce(&mut EvmContext<'_>, &mut EvmStack, &mut usize
         call_value: DEF_VALUE,
     };
 
-    let mut interpreter = revm_interpreter::Interpreter::new(contract, DEF_GAS_LIMIT, false);
+    let mut interpreter = revm::interpreter::Interpreter::new(contract, DEF_GAS_LIMIT, false);
     interpreter.return_data_buffer = Bytes::from_static(DEF_RD);
 
     let mut host = TestHost::new();
@@ -389,7 +389,7 @@ fn run_compiled_test_case(test_case: &TestCase<'_>, f: EvmCompilerFn) {
         assert_ecx,
     } = *test_case;
 
-    let is_eof_enabled = spec_id.is_enabled_in(SpecId::PRAGUE_EOF);
+    let is_eof_enabled = spec_id.is_enabled_in(SpecId::OSAKA);
 
     if !is_eof_enabled && bytecode.starts_with(&primitives::EOF_MAGIC_BYTES) {
         panic!("EOF is not enabled in the current spec, forgot to set `spec_id`?");
@@ -523,7 +523,7 @@ fn run_compiled_test_case(test_case: &TestCase<'_>, f: EvmCompilerFn) {
 struct MemDisplay<'a>(&'a [u8]);
 impl fmt::Debug for MemDisplay<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let chunks = self.0.chunks(32).map(revm_primitives::hex::encode_prefixed);
+        let chunks = self.0.chunks(32).map(revm::primitives::hex::encode_prefixed);
         f.debug_list().entries(chunks).finish()
     }
 }

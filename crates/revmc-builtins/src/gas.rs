@@ -1,8 +1,8 @@
 //! Gas calculation utilities.
 
-use revm_primitives::{SpecId, U256};
+use revm::primitives::{SpecId, U256};
 
-pub use revm_interpreter::gas::*;
+pub use revm::interpreter::gas::*;
 
 /// `const` Option `?`.
 #[allow(unused_macros)]

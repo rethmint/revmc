@@ -7,11 +7,11 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 use core::{fmt, mem::MaybeUninit, ptr};
-use revm_interpreter::{
+use revm::interpreter::{
     Contract, FunctionStack, Gas, Host, InstructionResult, Interpreter, InterpreterAction,
     InterpreterResult, SharedMemory, EMPTY_SHARED_MEMORY,
 };
-use revm_primitives::{Address, Bytes, Env, U256};
+use revm::primitives::{Address, Bytes, Env, U256};
 
 #[cfg(feature = "host-ext-any")]
 use core::any::Any;
@@ -85,7 +85,7 @@ impl<'a> EvmContext<'a> {
     }
 
     /// Creates a new interpreter by cloning the context.
-    pub fn to_interpreter(&self, stack: revm_interpreter::Stack) -> Interpreter {
+    pub fn to_interpreter(&self, stack: revm::interpreter::Stack) -> Interpreter {
         let bytecode = self.contract.bytecode.bytecode().clone();
         Interpreter {
             is_eof: self.contract.bytecode.is_eof(),
@@ -171,13 +171,13 @@ macro_rules! extern_revmc {
             $(
                 $(#[$attr])*
                 $vis fn $name(
-                    gas: *mut $crate::private::revm_interpreter::Gas,
+                    gas: *mut revm::interpreter::Gas,
                     stack: *mut $crate::EvmStack,
                     stack_len: *mut usize,
-                    env: *const $crate::private::revm_primitives::Env,
-                    contract: *const $crate::private::revm_interpreter::Contract,
+                    env: *const revm::primitives::Env,
+                    contract: *const revm::interpreter::Contract,
                     ecx: *mut $crate::EvmContext<'_>,
-                ) -> $crate::private::revm_interpreter::InstructionResult;
+                ) -> revm::interpreter::InstructionResult;
             )+
         }
     };
@@ -374,7 +374,7 @@ impl EvmStack {
 
     /// Creates a stack from the interpreter's stack. Assumes that the stack is large enough.
     #[inline]
-    pub fn from_interpreter_stack(stack: &mut revm_interpreter::Stack) -> (&mut Self, &mut usize) {
+    pub fn from_interpreter_stack(stack: &mut revm::interpreter::Stack) -> (&mut Self, &mut usize) {
         debug_assert!(stack.data().capacity() >= Self::CAPACITY);
         unsafe {
             let data = Self::from_mut_ptr(stack.data_mut().as_mut_ptr().cast());
@@ -765,8 +765,8 @@ fn option_as_mut_ptr<T>(opt: Option<&mut T>) -> *mut T {
 // Not public API.
 #[doc(hidden)]
 pub mod private {
-    pub use revm_interpreter;
-    pub use revm_primitives;
+    pub use revm::interpreter;
+    pub use revm::primitives;
 }
 
 #[cfg(test)]
@@ -820,25 +820,25 @@ mod tests {
             fn load_account_delegated(
                 &mut self,
                 address: Address,
-            ) -> Option<revm_interpreter::AccountLoad> {
+            ) -> Option<revm::interpreter::AccountLoad> {
                 unimplemented!()
             }
-            fn block_hash(&mut self, number: u64) -> Option<revm_primitives::B256> {
+            fn block_hash(&mut self, number: u64) -> Option<revm::primitives::B256> {
                 unimplemented!()
             }
-            fn balance(&mut self, address: Address) -> Option<revm_interpreter::StateLoad<U256>> {
+            fn balance(&mut self, address: Address) -> Option<revm::interpreter::StateLoad<U256>> {
                 unimplemented!()
             }
             fn code(
                 &mut self,
                 address: Address,
-            ) -> Option<revm_interpreter::Eip7702CodeLoad<Bytes>> {
+            ) -> Option<revm::interpreter::Eip7702CodeLoad<Bytes>> {
                 unimplemented!()
             }
             fn code_hash(
                 &mut self,
                 address: Address,
-            ) -> Option<revm_interpreter::Eip7702CodeLoad<revm_primitives::FixedBytes<32>>>
+            ) -> Option<revm::interpreter::Eip7702CodeLoad<revm::primitives::FixedBytes<32>>>
             {
                 unimplemented!()
             }
@@ -846,7 +846,7 @@ mod tests {
                 &mut self,
                 address: Address,
                 index: U256,
-            ) -> Option<revm_interpreter::StateLoad<U256>> {
+            ) -> Option<revm::interpreter::StateLoad<U256>> {
                 unimplemented!()
             }
             fn sstore(
@@ -854,7 +854,7 @@ mod tests {
                 address: Address,
                 index: U256,
                 value: U256,
-            ) -> Option<revm_interpreter::StateLoad<revm_interpreter::SStoreResult>> {
+            ) -> Option<revm::interpreter::StateLoad<revm::interpreter::SStoreResult>> {
                 unimplemented!()
             }
             fn tload(&mut self, address: Address, index: U256) -> U256 {
@@ -863,14 +863,14 @@ mod tests {
             fn tstore(&mut self, address: Address, index: U256, value: U256) {
                 unimplemented!()
             }
-            fn log(&mut self, log: revm_primitives::Log) {
+            fn log(&mut self, log: revm::primitives::Log) {
                 unimplemented!()
             }
             fn selfdestruct(
                 &mut self,
                 address: Address,
                 target: Address,
-            ) -> Option<revm_interpreter::StateLoad<revm_interpreter::SelfDestructResult>>
+            ) -> Option<revm::interpreter::StateLoad<revm::interpreter::SelfDestructResult>>
             {
                 unimplemented!()
             }

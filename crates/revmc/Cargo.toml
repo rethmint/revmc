@@ -28,8 +28,7 @@ revmc-cranelift = { workspace = true, optional = true }
 revmc-llvm = { workspace = true, optional = true }
 
 alloy-primitives = { workspace = true, features = ["std"] }
-revm-interpreter.workspace = true
-revm-primitives.workspace = true
+revm.workspace = true
 
 bitflags = "2.5"
 bitvec = "1.0"
@@ -55,10 +54,6 @@ llvm-prefer-dynamic = ["llvm", "revmc-llvm?/prefer-dynamic"]
 cranelift = ["dep:revmc-cranelift"]
 
 asm-keccak = ["alloy-primitives/asm-keccak"]
-
-# I don't think this is supported, but it's necessary for --all-features to work in workspaces which
-# also have this feature.
-optimism = ["revm-primitives/optimism", "revm-interpreter/optimism"]
 
 # Internal features.
 __fuzzing = ["dep:arbitrary", "dep:paste", "dep:similar-asserts"]

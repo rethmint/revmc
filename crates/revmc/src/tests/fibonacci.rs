@@ -1,8 +1,8 @@
 use super::{with_evm_context, DEF_SPEC};
 use crate::{Backend, EvmCompiler};
 use paste::paste;
-use revm_interpreter::{opcode as op, InstructionResult};
-use revm_primitives::U256;
+use revm::interpreter::{opcode as op, InstructionResult};
+use revm::primitives::U256;
 
 macro_rules! fibonacci_tests {
     ($($i:expr),* $(,)?) => {paste! {
@@ -103,7 +103,7 @@ fn fibonacci_rust(n: u16) -> U256 {
 
 #[test]
 fn test_fibonacci_rust() {
-    revm_primitives::uint! {
+    revm::primitives::uint! {
         assert_eq!(fibonacci_rust(0), 0_U256);
         assert_eq!(fibonacci_rust(1), 1_U256);
         assert_eq!(fibonacci_rust(2), 1_U256);

@@ -2,8 +2,8 @@
 
 use bitvec::vec::BitVec;
 use either::Either;
-use revm_interpreter::opcode as op;
-use revm_primitives::{hex, Eof, SpecId};
+use revm::interpreter::opcode as op;
+use revm::primitives::{hex, Eof, SpecId};
 use revmc_backend::{eyre::ensure, Result};
 use rustc_hash::FxHashMap;
 use std::{borrow::Cow, fmt};
@@ -759,7 +759,7 @@ impl InstData {
     /// Note that this does not include CALL and CREATE.
     #[inline]
     pub(crate) fn requires_gasleft(&self, spec_id: SpecId) -> bool {
-        // For SSTORE, see `revm_interpreter::gas::sstore_cost`.
+        // For SSTORE, see `revm::interpreter::gas::sstore_cost`.
         self.opcode == op::GAS
             || (self.opcode == op::SSTORE && spec_id.is_enabled_in(SpecId::ISTANBUL))
     }

@@ -2,8 +2,8 @@
 
 use clap::{Parser, ValueEnum};
 use color_eyre::{eyre::eyre, Result};
-use revm_interpreter::{opcode::make_instruction_table, SharedMemory};
-use revm_primitives::{address, spec_to_generic, Env, SpecId, TransactTo};
+use revm::interpreter::{opcode::make_instruction_table, SharedMemory};
+use revm::primitives::{address, spec_to_generic, Env, SpecId, TransactTo};
 use revmc::{eyre::ensure, EvmCompiler, EvmContext, EvmLlvmBackend, OptimizationLevel};
 use revmc_cli::{get_benches, read_code, Bench};
 use std::{
@@ -147,15 +147,15 @@ fn main() -> Result<()> {
     env.tx.data = calldata;
     env.tx.gas_limit = gas_limit;
 
-    let bytecode = revm_interpreter::analysis::to_analysed(revm_primitives::Bytecode::new_raw(
-        revm_primitives::Bytes::copy_from_slice(&bytecode),
+    let bytecode = revm::interpreter::analysis::to_analysed(revm::primitives::Bytecode::new_raw(
+        revm::primitives::Bytes::copy_from_slice(&bytecode),
     ));
-    let contract = revm_interpreter::Contract::new_env(&env, bytecode, None);
-    let mut host = revm_interpreter::DummyHost::new(env);
+    let contract = revm::interpreter::Contract::new_env(&env, bytecode, None);
+    let mut host = revm::interpreter::DummyHost::new(env);
 
     let bytecode = contract.bytecode.original_byte_slice();
 
-    let spec_id = if cli.eof { SpecId::PRAGUE_EOF } else { cli.spec_id.into() };
+    let spec_id = if cli.eof { SpecId::OSAKA } else { cli.spec_id.into() };
     if !stack_input.is_empty() {
         compiler.inspect_stack_length(true);
     }
@@ -218,7 +218,7 @@ fn main() -> Result<()> {
     let table = spec_to_generic!(spec_id, (const { &make_instruction_table::<_, SPEC>() }));
     let mut run = |f: revmc::EvmCompilerFn| {
         let mut interpreter =
-            revm_interpreter::Interpreter::new(contract.clone(), gas_limit, false);
+            revm::interpreter::Interpreter::new(contract.clone(), gas_limit, false);
         host.clear();
 
         if cli.interpret {
@@ -300,7 +300,7 @@ pub enum SpecIdValueEnum {
     SHANGHAI,
     CANCUN,
     PRAGUE,
-    PRAGUE_EOF,
+    OSAKA,
     LATEST,
 }
 
@@ -326,7 +326,7 @@ impl From<SpecIdValueEnum> for SpecId {
             SpecIdValueEnum::SHANGHAI => Self::SHANGHAI,
             SpecIdValueEnum::CANCUN => Self::CANCUN,
             SpecIdValueEnum::PRAGUE => Self::PRAGUE,
-            SpecIdValueEnum::PRAGUE_EOF => Self::PRAGUE_EOF,
+            SpecIdValueEnum::OSAKA => Self::OSAKA,
             SpecIdValueEnum::LATEST => Self::LATEST,
         }
     }

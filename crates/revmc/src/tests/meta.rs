@@ -1,7 +1,7 @@
 use super::with_evm_context;
 use crate::{Backend, EvmCompiler};
-use revm_interpreter::InstructionResult;
-use revm_primitives::SpecId;
+use revm::interpreter::InstructionResult;
+use revm::primitives::SpecId;
 
 matrix_tests!(translate_then_compile);
 

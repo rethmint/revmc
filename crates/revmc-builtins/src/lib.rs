@@ -11,11 +11,11 @@ extern crate alloc;
 extern crate tracing;
 
 use alloc::{boxed::Box, vec::Vec};
-use revm_interpreter::{
+use revm::interpreter::{
     as_u64_saturated, as_usize_saturated, CallInputs, CallScheme, CallValue, CreateInputs,
     EOFCreateInputs, FunctionStack, InstructionResult, InterpreterAction, InterpreterResult,
 };
-use revm_primitives::{
+use revm::primitives::{
     eof::EofHeader, Address, Bytes, CreateScheme, Eof, Log, LogData, SpecId, KECCAK_EMPTY,
     MAX_INITCODE_SIZE, U256,
 };
@@ -142,7 +142,7 @@ pub unsafe extern "C" fn __revmc_builtin_keccak256(
         let offset = try_into_usize!(offset);
         ensure_memory!(ecx, offset, len);
         let data = ecx.memory.slice(offset, len);
-        revm_primitives::keccak256(data).0
+        revm::primitives::keccak256(data).0
     });
     InstructionResult::Continue
 }
@@ -503,7 +503,7 @@ pub unsafe extern "C" fn __revmc_builtin_eof_create(
     let created_address = ecx
         .contract
         .target_address
-        .create2(salt.to_be_bytes(), revm_primitives::keccak256(sub_container));
+        .create2(salt.to_be_bytes(), revm::primitives::keccak256(sub_container));
 
     let gas_limit = ecx.gas.remaining_63_of_64_parts();
     gas!(ecx, gas_limit);

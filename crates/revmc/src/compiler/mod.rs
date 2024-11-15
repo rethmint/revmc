@@ -1,8 +1,8 @@
 //! EVM bytecode compiler implementation.
 
 use crate::{Backend, Builder, Bytecode, EvmCompilerFn, EvmContext, EvmStack, Result};
-use revm_interpreter::{Contract, Gas};
-use revm_primitives::{Bytes, Env, Eof, SpecId, EOF_MAGIC_BYTES};
+use revm::interpreter::{Contract, Gas};
+use revm::primitives::{Bytes, Env, Eof, SpecId, EOF_MAGIC_BYTES};
 use revmc_backend::{
     eyre::{ensure, eyre},
     Attribute, FunctionAttributeLocation, Linkage, OptimizationLevel,
@@ -332,7 +332,7 @@ impl<B: Backend> EvmCompiler<B> {
         match input {
             EvmCompilerInput::Code(code) => {
                 bytecode = code;
-                if spec_id.is_enabled_in(SpecId::PRAGUE_EOF) && code.starts_with(&EOF_MAGIC_BYTES) {
+                if spec_id.is_enabled_in(SpecId::OSAKA) && code.starts_with(&EOF_MAGIC_BYTES) {
                     eof = Some(Cow::Owned(Eof::decode(Bytes::copy_from_slice(code))?));
                 } else {
                     eof = None;
@@ -359,9 +359,9 @@ impl<B: Backend> EvmCompiler<B> {
         if !self.config.validate_eof {
             return Ok(());
         }
-        revm_interpreter::analysis::validate_eof_inner(eof, None).map_err(|e| match e {
-            revm_interpreter::analysis::EofError::Decode(e) => e.into(),
-            revm_interpreter::analysis::EofError::Validation(e) => {
+        revm::interpreter::analysis::validate_eof_inner(eof, None).map_err(|e| match e {
+            revm::interpreter::analysis::EofError::Decode(e) => e.into(),
+            revm::interpreter::analysis::EofError::Validation(e) => {
                 eyre!("validation error: {e:?}")
             }
         })

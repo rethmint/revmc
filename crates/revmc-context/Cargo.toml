@@ -17,10 +17,9 @@ exclude.workspace = true
 workspace = true
 
 [dependencies]
-revm-interpreter.workspace = true
-revm-primitives.workspace = true
+revm.workspace = true
 
 [features]
 default = ["std"]
-std = ["revm-interpreter/std", "revm-primitives/std"]
+std = ["revm/std", "revm/std"]
 host-ext-any = []

@@ -3,13 +3,13 @@
 use criterion::{
     criterion_group, criterion_main, measurement::WallTime, BenchmarkGroup, Criterion,
 };
-use revm_interpreter::SharedMemory;
-use revm_primitives::{Env, SpecId};
+use revm::interpreter::SharedMemory;
+use revm::primitives::{Env, SpecId};
 use revmc::{llvm, EvmCompiler, EvmCompilerFn, EvmContext, EvmLlvmBackend, EvmStack};
 use revmc_cli::Bench;
 use std::time::Duration;
 
-const SPEC_ID: SpecId = SpecId::PRAGUE_EOF;
+const SPEC_ID: SpecId = SpecId::OSAKA;
 
 fn bench(c: &mut Criterion) {
     for bench in &revmc_cli::get_benches() {
@@ -31,17 +31,17 @@ fn run_bench(c: &mut Criterion, bench: &Bench) {
     env.tx.data = calldata.clone().into();
     env.tx.gas_limit = gas_limit;
 
-    let bytecode = revm_interpreter::analysis::to_analysed(revm_primitives::Bytecode::new_raw(
-        revm_primitives::Bytes::copy_from_slice(bytecode),
+    let bytecode = revm::interpreter::analysis::to_analysed(revm::primitives::Bytecode::new_raw(
+        revm::primitives::Bytes::copy_from_slice(bytecode),
     ));
-    let contract = revm_interpreter::Contract::new_env(&env, bytecode, None);
-    let mut host = revm_interpreter::DummyHost::new(env);
+    let contract = revm::interpreter::Contract::new_env(&env, bytecode, None);
+    let mut host = revm::interpreter::DummyHost::new(env);
 
     let bytecode = contract.bytecode.original_byte_slice();
 
-    let table = &revm_interpreter::opcode::make_instruction_table::<
-        revm_interpreter::DummyHost,
-        revm_primitives::CancunSpec,
+    let table = &revm::interpreter::opcode::make_instruction_table::<
+        revm::interpreter::DummyHost,
+        revm::primitives::CancunSpec,
     >();
 
     // Set up the compiler.
@@ -64,7 +64,7 @@ fn run_bench(c: &mut Criterion, bench: &Bench) {
         let mut stack_len = stack_input.len();
 
         let mut interpreter =
-            revm_interpreter::Interpreter::new(contract.clone(), gas_limit, false);
+            revm::interpreter::Interpreter::new(contract.clone(), gas_limit, false);
         host.clear();
         let mut ecx = EvmContext::from_interpreter(&mut interpreter, &mut host);
 
@@ -89,7 +89,7 @@ fn run_bench(c: &mut Criterion, bench: &Bench) {
 
     g.bench_function("revm-interpreter", |b| {
         b.iter(|| {
-            let mut int = revm_interpreter::Interpreter::new(contract.clone(), gas_limit, false);
+            let mut int = revm::interpreter::Interpreter::new(contract.clone(), gas_limit, false);
             let mut host = host.clone();
 
             int.stack.data_mut().extend_from_slice(stack_input);

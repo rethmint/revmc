@@ -89,7 +89,7 @@ impl Linker {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use revm_primitives::SpecId;
+    use revm::primitives::SpecId;
 
     #[test]
     fn basic() {

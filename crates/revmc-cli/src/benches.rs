@@ -225,7 +225,7 @@ pub fn fibonacci_rust(mut i: U256) -> U256 {
 
 #[test]
 fn test_fibonacci_rust() {
-    revm_primitives::uint! {
+    revm::primitives::uint! {
         assert_eq!(fibonacci_rust(0_U256), 0_U256);
         assert_eq!(fibonacci_rust(1_U256), 1_U256);
         assert_eq!(fibonacci_rust(2_U256), 1_U256);

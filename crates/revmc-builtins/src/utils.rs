@@ -1,5 +1,5 @@
 use crate::gas;
-use revm_interpreter::{as_usize_saturated, Gas, InstructionResult, SharedMemory};
+use revm::interpreter::{as_usize_saturated, Gas, InstructionResult, SharedMemory};
 use revmc_context::{EvmContext, EvmWord};
 
 /// Splits the stack pointer into `N` elements by casting it to an array.
@@ -50,7 +50,7 @@ fn resize_memory_inner(
     new_size: usize,
 ) -> InstructionResult {
     // TODO: Memory limit
-    if !revm_interpreter::interpreter::resize_memory(memory, gas, new_size) {
+    if !revm::interpreter::interpreter::resize_memory(memory, gas, new_size) {
         return InstructionResult::MemoryOOG;
     }
     InstructionResult::Continue

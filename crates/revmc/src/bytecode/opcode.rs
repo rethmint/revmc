@@ -1,6 +1,6 @@
 use crate::{op_info_map, OpcodeInfo};
-use revm_interpreter::{opcode as op, OPCODE_INFO_JUMPTABLE};
-use revm_primitives::{Bytes, Eof, SpecId, EOF_MAGIC_BYTES};
+use revm::interpreter::{opcode as op, OPCODE_INFO_JUMPTABLE};
+use revm::primitives::{Bytes, Eof, SpecId, EOF_MAGIC_BYTES};
 use std::{fmt, slice};
 
 /// A bytecode iterator that yields opcodes and their immediate data, alongside the program counter.
@@ -151,7 +151,7 @@ impl fmt::Display for Opcode<'_> {
             None => write!(f, "UNKNOWN(0x{:02x})", self.opcode),
         }?;
         match self.immediate {
-            Some(imm) => write!(f, " {}", revm_primitives::hex::encode_prefixed(imm)),
+            Some(imm) => write!(f, " {}", revm::primitives::hex::encode_prefixed(imm)),
             None => Ok(()),
         }
     }
@@ -193,7 +193,7 @@ pub fn format_bytecode_to<W: fmt::Write + ?Sized>(
     spec_id: SpecId,
     w: &mut W,
 ) -> fmt::Result {
-    if spec_id.is_enabled_in(SpecId::PRAGUE_EOF) && bytecode.starts_with(&EOF_MAGIC_BYTES) {
+    if spec_id.is_enabled_in(SpecId::OSAKA) && bytecode.starts_with(&EOF_MAGIC_BYTES) {
         write!(w, "{:#?}", Eof::decode(Bytes::copy_from_slice(bytecode)))
     } else {
         write!(w, "{}", OpcodesIter::new(bytecode, spec_id))
@@ -203,7 +203,7 @@ pub fn format_bytecode_to<W: fmt::Write + ?Sized>(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use revm_interpreter::opcode as op;
+    use revm::interpreter::opcode as op;
 
     const DEF_SPEC: SpecId = SpecId::ARROW_GLACIER;
 

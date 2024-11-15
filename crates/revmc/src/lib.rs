@@ -44,7 +44,7 @@ pub use cranelift::EvmCraneliftBackend;
 pub use revmc_cranelift as cranelift;
 
 #[doc(no_inline)]
-pub use revm_interpreter::{self as interpreter, primitives};
+pub use revm::interpreter::{self as interpreter, primitives};
 
 const I256_MIN: U256 = U256::from_limbs([
     0x0000000000000000,
