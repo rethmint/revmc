@@ -2,6 +2,7 @@
 
 use clap::{Parser, ValueEnum};
 use color_eyre::{eyre::eyre, Result};
+use revm::db::states::plain_account;
 use revm::interpreter::{opcode::make_instruction_table, SharedMemory};
 use revm::primitives::{address, spec_to_generic, Env, SpecId, TransactTo};
 use revmc::{eyre::ensure, EvmCompiler, EvmContext, EvmLlvmBackend, OptimizationLevel};
@@ -61,7 +62,7 @@ struct Cli {
     out_dir: Option<PathBuf>,
     #[arg(short = 'O', long, default_value = "3")]
     opt_level: OptimizationLevel,
-    #[arg(long, value_enum, default_value = "pragueeof")]
+    #[arg(long, value_enum, default_value = "prague")]
     spec_id: SpecIdValueEnum,
     /// Short-hand for `--spec-id pragueeof`.
     #[arg(long, conflicts_with = "spec_id")]
@@ -90,12 +91,12 @@ fn main() -> Result<()> {
 
     // Build the compiler.
     let context = revmc::llvm::inkwell::context::Context::create();
-    let target = revmc::Target::new(cli.target, cli.target_cpu, cli.target_features);
-    let backend = EvmLlvmBackend::new_for_target(&context, cli.aot, cli.opt_level, &target)?;
+    let backend =
+        EvmLlvmBackend::new_for_target(&context, cli.aot, cli.opt_level, &revmc::Target::Native)?;
     let mut compiler = EvmCompiler::new(backend);
     compiler.set_dump_to(cli.out_dir);
-    compiler.gas_metering(!cli.no_gas);
-    unsafe { compiler.stack_bound_checks(!cli.no_len_checks) };
+    compiler.gas_metering(true);
+    unsafe { compiler.stack_bound_checks(true) };
     compiler.frame_pointers(true);
     compiler.debug_assertions(cli.debug_assertions);
     compiler.validate_eof(!cli.no_validate);
@@ -200,18 +201,16 @@ fn main() -> Result<()> {
         }
     }
 
-    let lib;
-    let f = if let Some(load) = load {
-        if let Some(load) = load {
-            lib = unsafe { libloading::Library::new(load) }?;
+    let f = match { unsafe { libloading::Library::new(load.unwrap().unwrap()) } } {
+        Ok(lib) => {
             let f: libloading::Symbol<'_, revmc::EvmCompilerFn> =
-                unsafe { lib.get(name.as_bytes())? };
+                unsafe { lib.get(name.as_bytes()).unwrap() };
             *f
-        } else {
-            return Err(eyre!("--load with no argument requires --aot"));
         }
-    } else {
-        unsafe { compiler.jit_function(f_id)? }
+        Err(err) => {
+            println!("Error: {:#?}", err);
+            panic!();
+        }
     };
 
     #[allow(unused_parens)]

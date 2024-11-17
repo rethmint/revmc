@@ -1,0 +1,17 @@
+Bytecode {
+    code: "",
+    eof: None,
+    insts: [
+        InstData {
+            opcode: STOP,
+            flags: InstFlags(0x0),
+            data: 0,
+            pc: 0,
+            section: Section::EMPTY,
+        },
+    ],
+    jumpdests: "",
+    spec_id: PRAGUE,
+    has_dynamic_jumps: false,
+    may_suspend: false,
+}
