@@ -2,16 +2,17 @@ use revmc::{ EvmLlvmBackend, OptimizationLevel, EvmCompiler, primitives::SpecId 
 use crate::error::CompilerError;
 use super::path::aot_store_path;
 
-pub struct AotRuntime {
+#[derive(Debug)]
+pub(crate) struct AotRuntime {
     pub cfg: AotCfg,
 }
 
 impl AotRuntime {
-    pub fn new(cfg: AotCfg) -> Self {
+    pub(crate) fn new(cfg: AotCfg) -> Self {
         Self { cfg }
     }
 
-    pub fn compile(
+    pub(crate) fn compile(
         &self,
         name: &'static str,
         bytecode: &[u8],
@@ -77,7 +78,8 @@ impl AotRuntime {
     }
 }
 
-pub struct AotCfg {
+#[derive(Debug)]
+pub(crate) struct AotCfg {
     pub aot: bool,
     pub opt_level: OptimizationLevel,
     pub no_gas: bool,
@@ -87,7 +89,7 @@ pub struct AotCfg {
 
 impl Default for AotCfg {
     fn default() -> Self {
-        AotCfg {
+        Self {
             aot: true,
             opt_level: OptimizationLevel::Aggressive,
             no_gas: true,

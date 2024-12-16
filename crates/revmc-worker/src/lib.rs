@@ -1,8 +1,9 @@
+#![allow(missing_docs)]
 mod external;
 mod worker;
-mod error;
 mod handler;
+pub mod error;
 
 pub use external::*;
-pub use worker::*;
 pub use handler::*;
+

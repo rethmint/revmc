@@ -1,8 +1,9 @@
 mod aot;
-mod worker;
+mod compiler;
 mod runtime;
 mod sleddb;
 mod path;
 
-pub use worker::*;
-pub use path::*;
+pub(crate) use sleddb::*;
+pub(crate) use compiler::*;
+pub(crate) use path::*;

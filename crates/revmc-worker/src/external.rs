@@ -1,14 +1,22 @@
-use crate::{ aot_store_path, error::ExtError, CompileWorker };
+use std::sync::{ Arc, RwLock };
+
+use crate::{ error::ExtError, worker::{ aot_store_path, CompileWorker, SledDB } };
 use alloy_primitives::B256;
 use revmc::{ primitives::SpecId, EvmCompilerFn };
+use once_cell::sync::OnceCell;
 
-pub struct ExternalContext {
-    compile_worker: &'static mut CompileWorker,
+pub(crate) static SLED_DB: OnceCell<Arc<RwLock<SledDB<B256>>>> = OnceCell::new();
+
+#[derive(Debug)]
+pub struct EXTCompileWorker {
+    compile_worker: Box<CompileWorker>,
 }
 
-impl ExternalContext {
-    pub fn new(compile_worker: &'static mut CompileWorker) -> Self {
-        Self { compile_worker }
+impl EXTCompileWorker {
+    pub fn new(threshold: u64) -> Self {
+        let sled_db = SLED_DB.get_or_init(|| Arc::new(RwLock::new(SledDB::init())));
+        let compiler = CompileWorker::new(threshold, Arc::clone(sled_db));
+        Self { compile_worker: Box::new(compiler) }
     }
 
     pub fn get_function(

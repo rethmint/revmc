@@ -9,14 +9,22 @@ fn ivec_to_u64(ivec: &sled::IVec) -> Option<u64> {
     ivec.as_ref().try_into().ok().map(u64::from_be_bytes)
 }
 
-pub struct CompileWorker {
+/// A worker responsible for compiling bytecode in machine code.
+#[derive(Debug)]
+pub(crate) struct CompileWorker {
     pub threshold: u64,
     sled_db: Arc<RwLock<SledDB<B256>>>,
     aot_runtime: Arc<AotRuntime>,
 }
 
 impl CompileWorker {
-    pub fn new(threshold: u64, sled_db: Arc<RwLock<SledDB<B256>>>) -> Self {
+    /// Creates a new `CompileWorker`.
+    ///
+    /// # Arguments
+    ///
+    /// * `threshold` - The threshold for the number of times a bytecode must be seen before it is compiled.
+    /// * `sled_db` - A reference-counted, thread-safe handle to the sled database.
+    pub(crate) fn new(threshold: u64, sled_db: Arc<RwLock<SledDB<B256>>>) -> Self {
         Self {
             threshold,
             sled_db,
@@ -24,7 +32,13 @@ impl CompileWorker {
         }
     }
 
-    pub fn work(&mut self, spec_id: SpecId, code_hash: B256, bytecode: revm::primitives::Bytes) {
+    // Work the given bytecode with the specific specId.
+    pub(crate) fn work(
+        &mut self,
+        spec_id: SpecId,
+        code_hash: B256,
+        bytecode: revm::primitives::Bytes
+    ) {
         let count = {
             let db_read = match self.sled_db.read() {
                 Ok(lock) => lock,

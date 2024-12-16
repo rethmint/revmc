@@ -2,9 +2,10 @@ use std::{ panic::{ catch_unwind, AssertUnwindSafe }, sync::Arc };
 
 use revm::{ handler::register::EvmHandler, Database };
 
-use crate::ExternalContext;
+use crate::EXTCompileWorker;
 
-pub fn register_handler<DB: Database>(handler: &mut EvmHandler<'_, ExternalContext, DB>) {
+// Register handler for external context to support background compile worker in node runtime
+pub fn register_handler<DB: Database>(handler: &mut EvmHandler<'_, EXTCompileWorker, DB>) {
     let prev = handler.execution.execute_frame.clone();
     handler.execution.execute_frame = Arc::new(move |frame, memory, tables, context| {
         let interpreter = frame.interpreter_mut();

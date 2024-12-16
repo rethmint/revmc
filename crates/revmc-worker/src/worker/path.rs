@@ -1,26 +1,21 @@
 use std::path::PathBuf;
 
-use chrono::Utc;
-
+/// Returns the default path
 #[inline]
 fn default_path() -> PathBuf {
     let home_dir = std::env::var("HOME").unwrap_or_else(|_| ".".to_string());
-    PathBuf::from(home_dir).join(".aotstore")
+    let config_path = std::env::var("AOTSTORE_PATH").unwrap_or_else(|_| ".aotstore".to_string());
+    PathBuf::from(home_dir).join(config_path)
 }
 
+/// Returns the path to the AOT store output directory.
 #[inline]
-pub fn aot_store_path() -> PathBuf {
+pub(crate) fn aot_store_path() -> PathBuf {
     default_path().join("output")
 }
 
+/// Returns the path to the sled database directory.
 #[inline]
-pub fn sleddb_path() -> PathBuf {
+pub(crate) fn sleddb_path() -> PathBuf {
     default_path().join("db")
-}
-
-#[inline]
-pub fn log_path() -> PathBuf {
-    let timestamp = Utc::now().format("%Y-%m-%d-%H-%M-%S %z").to_string();
-    let file = format!("{timestamp}.log");
-    default_path().join("log").join(file)
 }

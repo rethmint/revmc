@@ -1,7 +1,5 @@
 mod compiler;
-mod ext;
-mod tracer;
+pub mod ext;
 
-pub use compiler::*;
-pub use ext::*;
-pub use tracer::*;
+pub(crate) use compiler::*;
+pub(crate) use ext::*;
