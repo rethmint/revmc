@@ -1,6 +1,6 @@
 [workspace]
 members = ["crates/*", "examples/*", "fuzz"]
-default-members = ["crates/revmc-cli"]
+default-members = ["crates/revmc-cli", "crates/revmc-worker"]
 resolver = "2"
 
 [workspace.package]

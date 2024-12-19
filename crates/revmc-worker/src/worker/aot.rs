@@ -18,8 +18,6 @@ impl AotRuntime {
         bytecode: &[u8],
         spec_id: SpecId
     ) -> Result<(), CompilerError> {
-        let _ = color_eyre::install();
-
         let context = revmc::llvm::inkwell::context::Context::create();
         let backend = EvmLlvmBackend::new_for_target(
             &context,
