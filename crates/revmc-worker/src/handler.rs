@@ -1,6 +1,9 @@
-use std::{ panic::{ catch_unwind, AssertUnwindSafe }, sync::Arc };
+use std::{
+    panic::{catch_unwind, AssertUnwindSafe},
+    sync::Arc,
+};
 
-use revm::{ handler::register::EvmHandler, Database };
+use revm::{handler::register::EvmHandler, Database};
 
 use crate::EXTCompileWorker;
 
@@ -22,11 +25,9 @@ pub fn register_handler<DB: Database>(handler: &mut EvmHandler<'_, EXTCompileWor
 
             Ok(Some((f, _lib))) => {
                 println!("Executing with AOT Compiled Fn\n");
-                let res = catch_unwind(
-                    AssertUnwindSafe(|| unsafe {
-                        f.call_with_interpreter_and_memory(interpreter, memory, context)
-                    })
-                );
+                let res = catch_unwind(AssertUnwindSafe(|| unsafe {
+                    f.call_with_interpreter_and_memory(interpreter, memory, context)
+                }));
 
                 if let Err(err) = &res {
                     tracing::error!("Extern Fn Call: with bytecode hash {} {:#?}", code_hash, err);

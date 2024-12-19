@@ -1,6 +1,9 @@
-use revmc::{ EvmLlvmBackend, OptimizationLevel, EvmCompiler, primitives::SpecId };
-use crate::error::CompilerError;
 use super::path::aot_store_path;
+use crate::error::CompilerError;
+
+use revm_primitives::SpecId;
+use revmc::{EvmCompiler, OptimizationLevel};
+use revmc_llvm::EvmLlvmBackend;
 
 #[derive(Debug)]
 pub(crate) struct AotRuntime {
@@ -16,24 +19,24 @@ impl AotRuntime {
         &self,
         name: &'static str,
         bytecode: &[u8],
-        spec_id: SpecId
+        spec_id: SpecId,
     ) -> Result<(), CompilerError> {
-        let context = revmc::llvm::inkwell::context::Context::create();
+        let _ = color_eyre::install();
+
+        let context = revmc_llvm::inkwell::context::Context::create();
         let backend = EvmLlvmBackend::new_for_target(
             &context,
             self.cfg.aot,
             self.cfg.opt_level,
-            &revmc::Target::Native
-        ).map_err(|err| CompilerError::BackendInit {
-            err: err.to_string(),
-        })?;
+            &revmc_backend::Target::Native,
+        )
+        .map_err(|err| CompilerError::BackendInit { err: err.to_string() })?;
 
         let mut compiler = EvmCompiler::new(backend);
 
         let out_dir = aot_store_path();
-        std::fs::create_dir_all(&out_dir).map_err(|err| CompilerError::FileIO {
-            err: err.to_string(),
-        })?;
+        std::fs::create_dir_all(&out_dir)
+            .map_err(|err| CompilerError::FileIO { err: err.to_string() })?;
 
         compiler.set_dump_to(Some(out_dir.clone()));
         compiler.gas_metering(self.cfg.no_gas);
@@ -48,29 +51,26 @@ impl AotRuntime {
         compiler.validate_eof(true);
 
         compiler.inspect_stack_length(true);
-        let _f_id = compiler.translate(name, bytecode, spec_id).map_err(|err| {
-            CompilerError::BytecodeTranslation {
-                err: err.to_string(),
-            }
-        })?;
+        let _f_id = compiler
+            .translate(name, bytecode, spec_id)
+            .map_err(|err| CompilerError::BytecodeTranslation { err: err.to_string() })?;
 
         let module_out_dir = out_dir.join(name);
-        std::fs::create_dir_all(&module_out_dir).map_err(|err| CompilerError::FileIO {
-            err: err.to_string(),
-        })?;
+        std::fs::create_dir_all(&module_out_dir)
+            .map_err(|err| CompilerError::FileIO { err: err.to_string() })?;
 
         // Compile.
         let obj = module_out_dir.join("a.o");
-        compiler.write_object_to_file(&obj).map_err(|err| CompilerError::FileIO {
-            err: err.to_string(),
-        })?;
+        compiler
+            .write_object_to_file(&obj)
+            .map_err(|err| CompilerError::FileIO { err: err.to_string() })?;
 
         // Link.
         let so_path = module_out_dir.join("a.so");
         let linker = revmc::Linker::new();
-        linker.link(&so_path, [obj.to_str().unwrap()]).map_err(|err| CompilerError::Link {
-            err: err.to_string(),
-        })?;
+        linker
+            .link(&so_path, [obj.to_str().unwrap()])
+            .map_err(|err| CompilerError::Link { err: err.to_string() })?;
 
         Ok(())
     }
