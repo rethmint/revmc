@@ -1,9 +1,9 @@
 mod aot;
 mod compiler;
+mod path;
 mod runtime;
 mod sleddb;
-mod path;
 
-pub(crate) use sleddb::*;
-pub(crate) use compiler::*;
+pub use compiler::*;
 pub(crate) use path::*;
+pub(crate) use sleddb::*;

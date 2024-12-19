@@ -6,3 +6,4 @@ mod worker;
 
 pub use external::*;
 pub use handler::*;
+pub use worker::CompileWorker;

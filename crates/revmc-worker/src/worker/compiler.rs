@@ -15,7 +15,7 @@ fn ivec_to_u64(ivec: &sled::IVec) -> Option<u64> {
 
 /// A worker responsible for compiling bytecode in machine code.
 #[derive(Debug)]
-pub(crate) struct CompileWorker {
+pub struct CompileWorker {
     pub threshold: u64,
     sled_db: Arc<RwLock<SledDB<B256>>>,
     aot_runtime: Arc<AotRuntime>,
