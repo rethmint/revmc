@@ -1,7 +1,7 @@
-use revm::db::EmptyDB;
+use revm::{db::EmptyDB, Evm};
 use revm_primitives::{AccessList, AccessListItem, Address, Bytecode, Bytes, B256};
 
-use crate::EXTCompileWorker;
+use crate::{register_handler, EXTCompileWorker};
 
 fn setup_test_cache<DB>(ext_worker: &mut EXTCompileWorker<DB>, bytecode: Bytecode) {
     let code_hash = bytecode.hash_slow();
@@ -31,6 +31,12 @@ fn test_compiler_cache_load_access_list() {
         AccessListItem { address: Address::ZERO, storage_keys: vec![B256::ZERO] },
         AccessListItem { address: Address::ZERO, storage_keys: vec![B256::ZERO] },
     ]);
+
+    let mut evm = Evm::builder()
+        .with_ref_db(EmptyDB::new())
+        .with_external_context(EXTCompileWorker::<EmptyDB>::new(1, 3, 128))
+        .append_handler_register(register_handler)
+        .build();
 
     let _ = ext_worker.cache_load_access_list(list.to_vec(), EmptyDB::new());
 }
