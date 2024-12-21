@@ -1,5 +1,5 @@
 use std::{
-    fmt::Debug,
+    fmt::{Debug, Display},
     num::NonZeroUsize,
     sync::{Arc, RwLock},
 };
@@ -74,27 +74,37 @@ impl<DB> EXTCompileWorker<DB> {
         self.compile_worker.work(spec_id, code_hash, bytecode);
     }
 
-    pub fn cache_initialize(
+    pub fn cache_load_access_list(
         &mut self,
         access_list: Vec<AccessListItem>,
         mut state_db: DB,
-        spec_id: SpecId,
-    ) where
+    ) -> Result<(), ExtError>
+    where
         DB: Database,
-        <DB as revm::Database>::Error: Debug,
+        <DB as revm::Database>::Error: Debug + Display,
     {
         for access_item in access_list.iter() {
-            // TODO: Error handling
-            let acc_info = state_db.basic(access_item.address).unwrap().unwrap();
-            let code = state_db.code_by_hash(acc_info.code_hash()).unwrap();
+            let acc_info = {
+                match state_db.basic(access_item.address) {
+                    Ok(Some(acc_info)) => acc_info,
+                    Ok(None) => return Err(ExtError::IllegalAccessListAccess),
+                    Err(err) => {
+                        return Err(ExtError::StateDBAccInfoFetchError { err: err.to_string() })
+                    }
+                }
+            };
+            let code = {
+                match state_db.code_by_hash(acc_info.code_hash()) {
+                    Ok(code) => code,
+                    Err(err) => return Err(ExtError::CodeNoneExists { err: err.to_string() }),
+                }
+            };
             let code_hash = code.hash_slow();
 
-            if let Some(f) = self.cache.get(&code_hash.to_string()) {
-                // Already in cache
-                continue;
-            }
-
-            self.work(spec_id, code_hash, code.bytecode().clone());
+            // loads into cache
+            self.get_function(code_hash).unwrap();
         }
+
+        Ok(())
     }
 }
