@@ -23,7 +23,7 @@ pub fn register_handler<DB: Database>(handler: &'static mut EvmHandler<'_, EXTCo
                 prev(frame, memory, tables, context)
             }
 
-            Ok(Some((f, _lib))) => {
+            Ok(Some(f)) => {
                 println!("Executing with AOT Compiled Fn\n");
                 let res = catch_unwind(AssertUnwindSafe(|| unsafe {
                     f.call_with_interpreter_and_memory(interpreter, memory, context)

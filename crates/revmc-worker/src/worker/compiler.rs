@@ -1,5 +1,5 @@
 use alloy_primitives::B256;
-use revmc::primitives::SpecId;
+use revmc::{primitives::Bytes, primitives::SpecId};
 use std::sync::{Arc, RwLock};
 use tokio::sync::Semaphore;
 use tokio::task::JoinHandle;
@@ -55,7 +55,7 @@ impl CompileWorker {
         &mut self,
         spec_id: SpecId,
         code_hash: B256,
-        bytecode: revm::primitives::Bytes,
+        bytecode: Bytes,
     ) -> JoinHandle<()> {
         // Read the current count of the bytecode hash from the embedded database
         let count = {
@@ -83,7 +83,7 @@ impl CompileWorker {
             // Check if the bytecode should be compiled
             if new_count == threshold {
                 // Compile the bytecode
-                let label = code_hash.to_string().leak();
+                let label = code_hash;
                 match aot_runtime.compile(label, bytecode.as_ref(), spec_id) {
                     Ok(_) => {
                         tracing::info!("Compiled: bytecode hash {}", code_hash);
