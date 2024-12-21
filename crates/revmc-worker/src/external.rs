@@ -19,7 +19,7 @@ pub(crate) static SLED_DB: OnceCell<Arc<RwLock<SledDB<B256>>>> = OnceCell::new()
 pub struct EXTCompileWorker {
     compile_worker: Box<CompileWorker>,
 
-    pub cache: RwLock<LruCache<String, (EvmCompilerFn, libloading::Library)>>,
+    pub cache: LruCache<String, (EvmCompilerFn, libloading::Library)>,
 }
 
 impl EXTCompileWorker {
@@ -28,7 +28,7 @@ impl EXTCompileWorker {
         let compiler = CompileWorker::new(threshold, Arc::clone(sled_db), max_concurrent_tasks);
         Self {
             compile_worker: Box::new(compiler),
-            cache: RwLock::new(LruCache::new(NonZeroUsize::new(cache_size_words).unwrap())),
+            cache: LruCache::new(NonZeroUsize::new(cache_size_words).unwrap()),
         }
     }
 
@@ -38,15 +38,8 @@ impl EXTCompileWorker {
         }
 
         let label = code_hash.to_string();
-        {
-            let mut cache_write = match self.cache.write() {
-                LockResult::Ok(guard) => guard,
-                LockResult::Err(err) => return Err(ExtError::RwLockError { err: err.to_string() }),
-            };
-
-            if let Some((f, _)) = cache_write.get(&label) {
-                return Ok(Some(*f));
-            }
+        if let Some((f, _)) = self.cache.get(&label) {
+            return Ok(Some(*f));
         }
 
         let so_file = aot_store_path().join(&label).join("a.so");
@@ -60,16 +53,9 @@ impl EXTCompileWorker {
                         .map_err(|err| ExtError::GetSymbolError { err: err.to_string() })?
                 };
 
-                let mut cache_write = match self.cache.write() {
-                    LockResult::Ok(guard) => guard,
-                    LockResult::Err(err) => {
-                        return Err(ExtError::RwLockError { err: err.to_string() })
-                    }
-                };
+                self.cache.put(label.to_string(), (f, lib));
 
-                cache_write.put(label.to_string(), (f, lib));
-
-                if let Some((f, _)) = cache_write.get(&label) {
+                if let Some((f, _)) = self.cache.get(&label) {
                     return Ok(Some(*f));
                 } else {
                     return Err(ExtError::LruCacheGetError);

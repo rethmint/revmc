@@ -8,9 +8,6 @@ pub enum ExtError {
     #[error("Get symbol error: {err}")]
     GetSymbolError { err: String },
 
-    #[error("RwLock error: {err}")]
-    RwLockError { err: String },
-
     #[error("Get from lib, externalfn")]
     LruCacheGetError,
 }
