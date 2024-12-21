@@ -8,7 +8,9 @@ use revm::{handler::register::EvmHandler, Database};
 use crate::EXTCompileWorker;
 
 // Register handler for external context to support background compile worker in node runtime
-pub fn register_handler<DB: Database>(handler: &'static mut EvmHandler<'_, EXTCompileWorker, DB>) {
+pub fn register_handler<DB: Database>(
+    handler: &'static mut EvmHandler<'_, EXTCompileWorker<DB>, DB>,
+) {
     let prev = handler.execution.execute_frame.clone();
     handler.execution.execute_frame = Arc::new(move |frame, memory, tables, context| {
         let interpreter = frame.interpreter_mut();

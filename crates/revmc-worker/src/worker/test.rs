@@ -1,10 +1,11 @@
+use revm::db::EmptyDB;
 use revm_primitives::{Bytecode, Bytes};
 
 use crate::EXTCompileWorker;
 
 #[test]
 pub(crate) fn test_compiler_cache_retrieval() {
-    let mut ext_worker = EXTCompileWorker::new(1, 3, 128);
+    let mut ext_worker = EXTCompileWorker::<EmptyDB>::new(1, 3, 128);
     let bytecode = Bytecode::new_raw(Bytes::from_static(&[1, 2, 3]));
     let code_hash = bytecode.hash_slow();
 
