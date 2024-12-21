@@ -23,12 +23,12 @@ pub struct EXTCompileWorker {
 }
 
 impl EXTCompileWorker {
-    pub fn new(threshold: u64, max_concurrent_tasks: usize) -> Self {
+    pub fn new(threshold: u64, max_concurrent_tasks: usize, cache_size_words: usize) -> Self {
         let sled_db = SLED_DB.get_or_init(|| Arc::new(RwLock::new(SledDB::init())));
         let compiler = CompileWorker::new(threshold, Arc::clone(sled_db), max_concurrent_tasks);
         Self {
             compile_worker: Box::new(compiler),
-            cache: RwLock::new(LruCache::new(NonZeroUsize::new(128).unwrap())),
+            cache: RwLock::new(LruCache::new(NonZeroUsize::new(cache_size_words).unwrap())),
         }
     }
 
